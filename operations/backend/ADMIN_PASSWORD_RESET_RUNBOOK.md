@@ -12,18 +12,18 @@ cd backend
 node --input-type=module -e "import bcrypt from 'bcrypt'; const senha=process.env.TEMP_ADMIN_PASSWORD; if (!senha || senha.length < 16) throw new Error('TEMP_ADMIN_PASSWORD deve ter pelo menos 16 caracteres'); console.log(await bcrypt.hash(senha, 12))"
 ```
 
-3. Execute um `UPDATE` parametrizado no SQL client do provedor, substituindo apenas o hash gerado e o login. O `sessionVersion` revoga todos os JWTs existentes:
+3. Execute um `UPDATE` preparado usando parâmetros vinculados para o hash e o login normalizado no cliente PostgreSQL aprovado. A forma abaixo é apenas o formato da instrução; não substitua valores por interpolação manual de strings. O `sessionVersion` revoga todos os JWTs existentes:
 
 ```sql
 UPDATE "Usuario"
-SET "passwordHash" = '<BCRYPT_HASH_GERADO>',
+SET "passwordHash" = $1,
     "sessionVersion" = "sessionVersion" + 1
-WHERE "login" = LOWER('<LOGIN_DA_CONTA>')
+WHERE "login" = LOWER($2)
   AND "nivelAcesso" = 'ADMINISTRADOR';
 ```
 
 4. Confirme que exatamente uma linha foi atualizada. Se o resultado for zero ou mais de uma linha, pare e investigue; não repita às cegas.
-5. Remova imediatamente `TEMP_ADMIN_PASSWORD` do ambiente, faça login com a senha temporária e altere-a pelo fluxo autenticado `PATCH /auth/senha`.
+5. Remova imediatamente `TEMP_ADMIN_PASSWORD` do ambiente. Confirme login com a senha temporária, altere-a pelo fluxo autenticado `PATCH /auth/senha` e confirme que uma sessão/token anterior é rejeitada; não registre senha, hash ou token. Confirme também que a variável temporária não permanece no processo/shell.
 6. Registre apenas a execução e o identificador da conta, nunca a senha ou o hash.
 
 ## Limites
