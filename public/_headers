@@ -1,0 +1,4 @@
+# Public documentation only. These headers are used if public/ is served by Cloudflare Pages.
+/docs/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, s-maxage=1800
