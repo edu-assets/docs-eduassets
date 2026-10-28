@@ -12,14 +12,14 @@ Este repositório é a fonte canônica da documentação do eduAssets, compartil
 - `operations/backend/` — procedimento de recuperação para mantenedores e guias dos templates de implantação Nginx. Não fazem parte do catálogo do modal e apontam aos arquivos de configuração de exemplo no repositório backend. O runbook de recuperação não contém senhas nem URLs de conexão de produção; use-o somente com acesso autorizado ao banco de dados e janela aprovada.
 - `README.md` — este guia em inglês.
 
-O caminho `public/docs/` é intencional e mantém nomes estáveis para os clientes. O host público canônico é https://docs.eduassets.tech, que serve os arquivos em `/docs/`. O frontend usa esse host por padrão; `VITE_DOCS_BASE_URL` pode substituir a URL-base. Se a requisição remota falhar ou retornar resposta sem sucesso, o app usa o fallback `public/docs/` incluído no frontend. A privacidade do repositório não controla o acesso aos guias públicos já hospedados.
+O caminho `public/docs/` é intencional e mantém nomes estáveis para os clientes. O host público canônico é https://docs.eduassets.tech, que serve os arquivos em `/docs/`. O navegador carrega o Markdown do modal a partir de um commit imutável, fixado em `app-eduassets/src/core/docs/docsService.ts`; o app não usa `VITE_DOCS_BASE_URL`. Se a requisição fixada falhar ou retornar resposta sem sucesso, o app usa o fallback `public/docs/` incluído no frontend. A privacidade do repositório não controla o acesso aos guias públicos já hospedados.
 
 ## Edição e publicação
 
 1. Edite os arquivos canônicos em `public/docs/` e mantenha sincronizadas as versões em português e inglês.
 2. Preserve os nomes usados por `app-eduassets/src/core/docs/registry.ts`; atualize esse catálogo ao adicionar ou renomear um documento do modal.
 3. Não inclua segredos, dados pessoais de estudantes, credenciais de produção ou valores de recuperação de uso único. Em repositórios públicos, todos os arquivos e todo o histórico Git ficam legíveis.
-4. O app usa `https://docs.eduassets.tech` por padrão; `VITE_DOCS_BASE_URL` é uma substituição opcional da URL-base. Falha de rede ou resposta sem sucesso ativa o fallback Markdown incluído no frontend. Valide a origem hospedada antes de remover esse fallback.
+4. Após publicar um commit da documentação, atualize o pin imutável em `app-eduassets/src/core/docs/docsService.ts` e mantenha sincronizado o fallback Markdown incluído no app. A aplicação carrega esse pin por `raw.githubusercontent.com`; o site público dos guias continua em `https://docs.eduassets.tech`.
 
 Este repositório não publica nem reinicia a API, não altera a VM Oracle e não executa migrations. Os procedimentos de release do backend estão nos guias de implantação.
 

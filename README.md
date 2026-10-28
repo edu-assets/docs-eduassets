@@ -12,14 +12,14 @@ This repository is the canonical source for eduAssets documentation shared by th
 - `operations/backend/` — maintainer recovery procedure and Nginx deployment-template guides. They are outside the app’s modal catalog and refer to sample configuration files in the backend repository. The recovery guide contains no passwords or production connection strings; use it only with authorized database access and an approved recovery window.
 - `README_PT.md` — this repository guide in Brazilian Portuguese.
 
-The `public/docs/` path is intentional and keeps stable filenames for clients. The canonical public host is https://docs.eduassets.tech, serving files under `/docs/`. The frontend uses this host by default; `VITE_DOCS_BASE_URL` can override the base URL. If a remote request fails or returns a non-success response, the app uses its bundled `public/docs/` fallback. Repository privacy does not control access to the already-hosted public guides.
+The `public/docs/` path is intentional and keeps stable filenames for clients. The canonical public host is https://docs.eduassets.tech, serving files under `/docs/`. The browser app fetches modal Markdown from an immutable docs commit pinned in `app-eduassets/src/core/docs/docsService.ts`; it does not use `VITE_DOCS_BASE_URL`. If the pinned request fails or returns a non-success response, the app uses its bundled `public/docs/` fallback. Repository privacy does not control access to already-hosted public guides.
 
 ## Editing and release
 
 1. Edit the canonical files in `public/docs/` and keep the Portuguese/English counterparts synchronized.
 2. Preserve the filenames used by `app-eduassets/src/core/docs/registry.ts`; update that registry when adding or renaming a modal document.
 3. Keep secrets, private student data, production credentials, and one-time recovery values out of this repository. Every file in a public repository is readable, including its Git history.
-4. The app reads from `https://docs.eduassets.tech` by default; `VITE_DOCS_BASE_URL` is an optional base-URL override. A network failure or non-success response falls back to the bundled Markdown. Verify the hosted origin before removing that fallback.
+4. After publishing a documentation commit, update the immutable source pin in `app-eduassets/src/core/docs/docsService.ts` and keep the app's bundled Markdown fallback synchronized. The app fetches that pinned source from `raw.githubusercontent.com`; the public guide site remains at `https://docs.eduassets.tech`.
 
 The documentation repository does not deploy or restart the API, alter the Oracle VM, or run database migrations. Backend release procedures are documented in the deployment guides.
 
