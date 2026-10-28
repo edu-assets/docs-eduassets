@@ -1,10 +1,10 @@
 # Documentação do eduAssets
 
-[English](README.md) · [Visão geral do Frontend](https://github.com/edu-assets/eduAssets/blob/main/frontend.md) · [Visão geral do Backend](https://github.com/edu-assets/eduAssets/blob/main/backend.md)
+[English](README.md) · [Visão geral do Frontend](https://github.com/edu-assets/app-eduassets/blob/main/README_PT.md) · [Visão geral do Backend](https://github.com/edu-assets/api-eduassets/blob/main/README_PT.md)
 
 Este repositório é a fonte canônica da documentação do eduAssets, compartilhada pelo frontend, backend e portfólio. Os guias públicos são bilíngues. A documentação é hospedada em https://docs.eduassets.tech; o aplicativo mantém o catálogo e o leitor em app-eduassets, enquanto este repositório mantém os arquivos Markdown.
 
-**Status do produto:** versão oficial 1.0.0, publicada em 28/10/2026. O [histórico de alterações](public/docs/CHANGELOG.md) registra a versão e os fatos históricos datados.
+**Status do produto:** versão oficial 1.0.1, publicada em 28/10/2026. O [histórico de alterações](public/docs/CHANGELOG.md) registra a versão e os fatos históricos datados.
 
 ## Estrutura do repositório
 
