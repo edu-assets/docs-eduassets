@@ -227,6 +227,22 @@ curl -s https://api.eduassets.tech/auth/session-capabilities   # "passwordRecove
 
 Oracle Cloud blocks only outbound port 25; 465/587 work.
 
+### 5.3 Administrator push notifications (Web Push)
+
+Administrator push notifications use Web Push (Push API, service worker and VAPID keys) and are optional. In `.env.production`:
+
+```bash
+VAPID_PUBLIC_KEY=<VAPID public key>
+VAPID_PRIVATE_KEY=<VAPID private key>            # secret: never commit it or paste it in chats
+VAPID_SUBJECT=mailto:<administrator-contact>     # mailto: or https: URL
+```
+
+The three variables must be set together or not at all. Without them, the API works normally and reports `pushNotifications: false` in `GET /auth/session-capabilities`. An incomplete or invalid set disables push and writes a warning to the API log. Generate the key pair once, with `npx web-push generate-vapid-keys`, and never commit the private key. Changing either key invalidates every existing subscription: administrators must enable notifications again on each device.
+
+`docker-compose.production.yml` passes the three variables to the `api` container; after editing them, recreate the `api` service as described in section 5. No Nginx change is needed and the CSP did not change: the app (Cloudflare Pages) serves `/sw.js` (with `Cache-Control: no-cache`) and `/manifest.webmanifest`.
+
+Delivery happens after the operation is committed to the database and never delays or fails the original request.
+
 ## 6. Nginx
 
 Nginx accepts HTTPS connections on TCP port 443, according to the reviewed configuration bind, and forwards to the local API. Validate before reloading:
@@ -379,6 +395,8 @@ systemctl start eduassets-healthcheck.service && journalctl -u eduassets-healthc
 
 On every run, `vm-health-check.sh` also reads the API request log (`docker logs` since the previous run, ignoring `/health` and `/ready` health-check traffic) and reports a problem when there were **at least 5 HTTP 5xx responses and they were at least 5%** of the requests in that interval (`ERROR_5XX_MIN_COUNT` and `ERROR_5XX_MAX_PERCENT` in `/etc/eduassets/healthcheck.env`). Requiring both avoids alerts for a single error during quiet periods. With `HEALTH_PING_URL`, the problem reaches the dead-man switch as `/fail`. The script also reports when the last automatic deployment (§5.1) failed.
 
+To confirm whether push is active, check `pushNotifications` in `GET /auth/session-capabilities`; an incomplete or invalid configuration appears as a warning in the `api` container logs.
+
 ## 11. Backup and recovery
 
 Before migrations on an operational database, run [backup-postgres.sh](https://github.com/edu-assets/api-eduassets/blob/main/deploy/scripts/backup-postgres.sh) from the root of the backend repository checkout, with a protected URL compatible with `pg_dump`. For Neon PostgreSQL 18, use `pg_dump` major version 18 or newer; do not use a version 16 client against a version 18 server.
@@ -464,6 +482,13 @@ A read-only external check over the internet returned `{"status":"ok"}` from `/h
 - **Cloudflare dashboard (§15):** account MFA enabled, Bot Fight Mode tested and kept off, AI Labyrinth enabled and `security.txt` also configured in the dashboard.
 - **Database:** grants and RLS verified in Neon; the result is in the Data Model (section *Database grants and RLS (verified)*).
 - Still pending: confirm the first scheduled backup (2026-11-13, 06:30 UTC) and the backup check's first ping, the first restore drill (§11.2) and DMARC to `p=quarantine` (from December, §15).
+
+**Push notifications — 2026-11-12 (night):**
+
+- VAPID keys generated on the VM itself (disposable Node container) and written to `.env.production` without being displayed; a copy of the previous file was kept on the VM before the change.
+- API `9ef34e0` deployed by the automatic deployment after CI: encrypted backup `eduassets-20261112T211156Z.dump.age` uploaded to R2, migration `20261113090000_push_subscriptions` applied and API `healthy` on image `eduassets-backend:9ef34e080a4c`. `/auth/session-capabilities` now reports `pushNotifications: true`; `/notificacoes/push/config` requires an administrator session.
+- App `bb88a27` published on Cloudflare Pages with `/sw.js` and `/manifest.webmanifest`.
+- Pending: enable notifications on each administrator device (§5.3) and confirm a real notification triggered by an `EDITOR` account.
 
 ## 15. Cloudflare zone security
 

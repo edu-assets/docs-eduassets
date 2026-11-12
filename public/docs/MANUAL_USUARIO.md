@@ -22,7 +22,7 @@ O modelo atual acompanha quantidades por **categoria/modelo**. Ele não faz rast
 
 1. Na tela de entrada, preencha **E-mail / Login** e **Senha**; para leitura limitada, selecione **Continuar como convidado**.
 2. Clique em **Entrar**. Após o login, o menu mostra o nome e o papel da conta.
-3. Para encerrar a sessão, abra o menu do usuário e clique em **Sair**. O sistema solicita a revogação ao backend e retorna à tela de login.
+3. Para encerrar a sessão, abra o menu do usuário e clique em **Sair**. O sistema solicita a revogação ao backend, remove a inscrição de notificações deste dispositivo (se houver) e retorna à tela de login.
 
 **Privacidade e cookies:** a tela de entrada tem links para os **Termos de Uso** e a **Política de Privacidade**, que explica quais dados o eduAssets trata, com quem os compartilha, por quanto tempo os guarda e como exercer seus direitos. Na primeira visita, um aviso pergunta se você aceita **cookies de estatísticas** (Google Analytics); escolha **Aceitar** ou **Recusar**. Sem aceite, nada do Google é carregado e o sistema funciona normalmente. Para mudar a escolha, abra a Política de Privacidade e clique em **Preferências de cookies**.
 
@@ -139,10 +139,33 @@ Em **Configurações**:
 
 - **Aparência → Tema:** escolha **Claro**, **Escuro** ou **Sistema**.
 - **Idioma / Language:** escolha **Português** ou **English**; a interface troca de idioma imediatamente.
-- **Notificações:** altere **Alertas de empréstimo** e **Alertas de devolução** entre **Ativado** e **Desativado**.
-- **Salvar Configurações:** o botão disponível ao Administrador mostra uma confirmação visual, mas não persiste alertas no backend. Tema e idioma são salvos automaticamente como preferências deste navegador.
+- **Notificações:** ativação por dispositivo, com interruptores para empréstimos, devoluções e ocorrências (veja a subseção abaixo).
+- **Salvar Configurações:** o botão disponível ao Administrador mostra uma confirmação visual. Tema e idioma são salvos automaticamente como preferências deste navegador; as notificações não dependem desse botão.
 
-O tema e o idioma são preferências do navegador. A interface de notificações está presente, mas o código inspecionado não expõe uma rota de backend para persistir alertas; não trate o estado visual como prova de entrega de notificações.
+O tema e o idioma são preferências do navegador.
+
+### Notificações push para administradores
+
+Administradores recebem uma notificação do sistema, no computador ou no celular, sempre que outro usuário registra um **empréstimo**, uma **devolução** ou uma **ocorrência**. A notificação chega mesmo com o app fechado ou com o celular bloqueado. Ela é enviada apenas a contas **Administrador** ativas que ativaram o recurso naquele dispositivo; contas **Editor** nunca recebem, e quem registrou a operação não recebe o próprio alerta.
+
+Para ativar:
+
+1. Em **Configurações**, localize o cartão **Notificações** e clique em **Ativar notificações neste dispositivo**.
+2. Permita as notificações no aviso do navegador.
+3. Clique em **Enviar notificação de teste** para confirmar o recebimento.
+4. Use os interruptores de **empréstimos**, **devoluções** e **ocorrências** para escolher o que chega neste dispositivo. Eles são aplicados imediatamente; não é preciso clicar em **Salvar Configurações**.
+
+Para desativar neste dispositivo, clique em **Desativar neste dispositivo**.
+
+- **Android:** o Chrome funciona diretamente.
+- **iPhone e iPad:** exigem iOS 16.4 ou superior e o app instalado na tela de início. No Safari, toque em **Compartilhar → Adicionar à Tela de Início**, abra o app pelo ícone, entre como administrador e então ative as notificações.
+- **Bloqueio do navegador:** se as notificações foram bloqueadas, libere-as nas configurações do site (ícone ao lado do endereço) e recarregue a página.
+
+**Conteúdo:** o título é **Novo empréstimo**, **Devolução registrada** ou **Nova ocorrência**. Empréstimos e devoluções mostram o solicitante, os equipamentos e quem registrou, por exemplo: *João Silva · Notebook Dell ×2, Projetor Epson ×1 · por Ana Souza*. Ocorrências mostram os equipamentos, o tipo (**Observação**, **Manutenção** ou **Quebrado**) e quem registrou. Os equipamentos aparecem como "Categoria Modelo", até três itens e depois "e mais N". A notificação nunca mostra observações, descrições, problemas, medidas tomadas nem números de patrimônio, e um pedido de ocorrência gera uma única notificação, mesmo com vários números de patrimônio. O texto está em português nesta versão e pode aparecer na tela de bloqueio. Ao tocar na notificação, o app abre no painel **Controle**.
+
+**Som e alerta:** a notificação do sistema usa o som e a vibração padrão do dispositivo, pois os navegadores não permitem som personalizado. Com o app aberto e visível, ele também exibe um aviso destacado e toca um som próprio, que pode ser desligado no interruptor **Som dentro do app**. No computador a notificação permanece até ser dispensada; no Android, ela vibra.
+
+**Inscrições:** clicar em **Sair** remove a inscrição daquele dispositivo, para que um computador compartilhado deixe de receber alertas; a expiração por inatividade não remove. Alterar a senha, ou ter a senha redefinida por um administrador, remove todas as inscrições da conta: ative as notificações novamente depois.
 
 ## 11. Segurança da conta
 
@@ -173,6 +196,7 @@ Quem prepara uma instância deve seguir o README e preencher valores próprios n
 - **Implantação:** a instância oficial roda em `app.eduassets.tech` com a API em `api.eduassets.tech` (registros datados no [Guia de Hospedagem](Hospedagem.md)). Backup criptografado diário com retenção, monitoramento externo e ensaio de restauração estão descritos no mesmo guia; a ativação de cada item na VM é registrada pelo operador.
 - **Senha:** cada usuário altera a própria em **Segurança** e pode recuperá-la por e-mail em **Esqueci minha senha** (quando a instalação tem e-mail configurado); o administrador também redefine senhas em **Cadastros → Usuários**.
 - **Segurança da UI:** guestGate, permissions e os atributos `data-requires-*` orientam a interface. As permissões efetivas são as das rotas/controllers do backend.
+- **Notificações push:** o texto é exibido em português nesta versão, e o som é o padrão do dispositivo, pois o navegador não permite som personalizado.
 - **Granularidade do inventário:** o sistema controla quantidades por modelo/categoria, não números de série individuais.
 - **Dados:** este manual não contém dados reais; use somente contas, pessoas, equipamentos e tokens autorizados pela sua instalação.
 
@@ -185,3 +209,5 @@ Quem prepara uma instância deve seguir o README e preencher valores próprios n
 **O cartão RFID não funciona.** Confirme as duas flags, o segredo compartilhado, o processo da ponte, a conexão loopback, o leitor e o cartão vinculado. Enquanto isso, use login por senha.
 
 **A exportação não é gerada.** Revise o tipo, o período, os equipamentos marcados e o formato. A aplicação não cria arquivo quando não encontra registros para os filtros.
+
+**Não recebo notificações push.** Confirme que sua conta é **Administrador** e que as notificações estão ativadas neste dispositivo em **Configurações → Notificações**; use **Enviar notificação de teste**. No iPhone ou iPad, o app precisa estar instalado na tela de início (iOS 16.4 ou superior). Se o navegador bloqueou o aviso, libere as notificações nas configurações do site e recarregue a página.

@@ -23,7 +23,7 @@ The API middleware still accepts `Authorization: Bearer <JWT>` for legacy non-br
 | `GET` | `/` | Public | Basic status response. |
 | `GET` | `/health` | Public | Process liveness. |
 | `GET` | `/ready` | Public | Readiness with a bounded PostgreSQL check. |
-| `GET` | `/auth/session-capabilities` | Public | Reports whether the server supports browser cookie sessions (`cookieSession`) and whether email password recovery is configured (`passwordRecovery`). |
+| `GET` | `/auth/session-capabilities` | Public | Reports whether the server supports browser cookie sessions (`cookieSession`), whether email password recovery is configured (`passwordRecovery`) and whether push notifications are available (`pushNotifications`). |
 | `POST` | `/auth/login` | Public; rate limited, with Origin validation when cookie mode is requested | Authenticates `login` and `password`; sets the cookie and returns the profile in cookie mode. |
 | `GET` | `/auth/me` | Authenticated session | Returns the current session profile. |
 | `POST` | `/auth/logout` | Authenticated session | Revokes the user's session version and clears the cookie. Returns `204`. |
@@ -57,6 +57,22 @@ The API middleware still accepts `Authorization: Bearer <JWT>` for legacy non-br
 | `PATCH` | `/usuarios/:id` | Administrator; updates name, login, access level or the `ativo` status. |
 | `POST` | `/usuarios/:id/password-reset` | Administrator; body `{ "senha": "..." }` following the strong policy (12+ characters, uppercase, lowercase, digit, symbol, max. 72 bytes). Stores the new hash, increments `sessionVersion` (ending the user's sessions) and records `PASSWORD_RESET` in the audit log in the same transaction. Returns `204`. Used by the **Reset password** action in **Records → System Users**. |
 | `POST`, `DELETE` | `/usuarios/:id/rfid-token` | Administrator; provisions or revokes an RFID token. |
+
+## Push notifications
+
+Enrollment of administrator devices for Web Push notifications (Push API + service worker + VAPID). Every route requires `requireAdmin`; `PUT`, `DELETE` and `POST /teste` are limited to 30 requests per 15 minutes per user. Availability is reported by `pushNotifications` in `GET /auth/session-capabilities`.
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| `GET` | `/notificacoes/push/config` | Administrator | Returns `{ habilitado: boolean, chavePublica: string \| null }`. |
+| `PUT` | `/notificacoes/push/inscricao` | Administrator; rate limited | Body `{ inscricao: { endpoint, keys: { p256dh, auth } }, preferencias: { emprestimo, devolucao, ocorrencia } }`. Upserts by `endpoint` and returns `200` with `{ preferencias }`. An endpoint previously linked to another user moves to the current user. |
+| `DELETE` | `/notificacoes/push/inscricao` | Administrator; rate limited | Body `{ endpoint }`. Removes only the caller's own subscription. Returns `204`. |
+| `POST` | `/notificacoes/push/teste` | Administrator; rate limited | Sends a test only to the caller's own devices. Returns `202`. |
+
+- `endpoint` must be `https`, without credentials or a port, and its host must be on the push-service allowlist: `fcm.googleapis.com`, `*.push.apple.com`, `*.push.services.mozilla.com` and `*.notify.windows.com`. The check is repeated at send time (SSRF protection).
+- `PUT` and `POST /teste` respond `503` with `{ erro: 'backend.notificacoes.push_indisponivel' }` when push is not configured. Other error keys: `backend.notificacoes.endpoint_invalido`, `backend.notificacoes.chave_invalida`, `backend.notificacoes.preferencias_invalidas` and `backend.notificacoes.muitas_requisicoes`.
+- Payload received by the service worker: `{ v: 1, tipo: 'EMPRESTIMO_CRIADO' | 'DEVOLUCAO_REGISTRADA' | 'OCORRENCIA_REGISTRADA' | 'TESTE', titulo, corpo, url, tag, criadoEm }`.
+- Delivery happens after the operation is committed and never delays or fails the original request. TTL is 1 hour and urgency `high`. A `404` or `410` response from the push service removes the subscription.
 
 ## Validation and rules
 

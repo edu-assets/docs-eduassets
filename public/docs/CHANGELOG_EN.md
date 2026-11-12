@@ -2,6 +2,15 @@
 
 This changelog preserves dated development and deployment records. The current product version is **official 1.2.0**, released on November 12, 2026; earlier entries remain historical.
 
+## Push notifications for administrators — November 12, 2026
+
+New feature, with no version number.
+
+- **System alerts:** when another user registers a loan, a return or an occurrence, active administrators receive a notification on the computer or phone, even with the app closed or the phone locked. Activation is per device under **Settings → Notifications**, with switches per event type and the in-app sound. Editor accounts do not receive them.
+- **Privacy:** the notification shows only the requester (or the occurrence type), the equipment by category and model, and who registered it; it never shows notes, descriptions, problem text, measures taken or patrimony numbers. Push services (Google, Apple, Mozilla and Microsoft) see only the device endpoint and an encrypted payload.
+- **Operations:** new optional variables `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in `.env.production`; without them the feature stays disabled and the API works normally. New `PushSubscription` table (migration `20261113090000_push_subscriptions`). No Nginx or CSP change was needed.
+- **Documentation:** Hosting §5.3 and §10; User Manual §2, §10, §14 and §15; API Reference (new *Push notifications* section); Data Model (`PushSubscription` entity and notification rules).
+
 ## Monitoring, alerting and Cloudflare account security — November 12, 2026
 
 Operations only, with no code or version change.

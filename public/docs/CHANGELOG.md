@@ -2,6 +2,15 @@
 
 Este changelog preserva registros datados de desenvolvimento e implantação. A versão atual do produto é a **1.2.0 oficial**, publicada em 12/11/2026; entradas anteriores permanecem como histórico.
 
+## Notificações push para administradores — 12 de novembro de 2026
+
+Novo recurso, sem número de versão.
+
+- **Alertas do sistema:** quando outro usuário registra um empréstimo, uma devolução ou uma ocorrência, os administradores ativos recebem uma notificação no computador ou no celular, mesmo com o app fechado ou o celular bloqueado. A ativação é feita por dispositivo em **Configurações → Notificações**, com interruptores por tipo de evento e o som dentro do app. Contas Editor não recebem.
+- **Privacidade:** a notificação mostra apenas o solicitante (ou o tipo de ocorrência), os equipamentos por categoria e modelo e quem registrou; nunca mostra observações, descrições, problemas, medidas tomadas ou números de patrimônio. Os serviços de push (Google, Apple, Mozilla e Microsoft) veem apenas o endpoint do dispositivo e um payload criptografado.
+- **Operação:** novas variáveis opcionais `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` em `.env.production`; sem elas o recurso fica desativado e a API funciona normalmente. Nova tabela `PushSubscription` (migration `20261113090000_push_subscriptions`). Não houve alteração no Nginx nem na CSP.
+- **Documentação:** Hospedagem §5.3 e §10; Manual do Usuário §2, §10, §14 e §15; Referência da API (nova seção *Notificações push*); Modelo de Dados (entidade `PushSubscription` e regras de notificação).
+
 ## Monitoramento, alertas e segurança da conta Cloudflare — 12 de novembro de 2026
 
 Operação, sem mudança de código nem de versão.

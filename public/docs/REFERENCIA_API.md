@@ -23,7 +23,7 @@ O middleware da API ainda aceita `Authorization: Bearer <JWT>` para integraçõe
 | `GET` | `/` | Público | Resposta básica de status. |
 | `GET` | `/health` | Público | Liveness do processo. |
 | `GET` | `/ready` | Público | Readiness com verificação limitada do PostgreSQL. |
-| `GET` | `/auth/session-capabilities` | Público | Informa se o servidor suporta sessão de navegador via cookie (`cookieSession`) e se a recuperação de senha por e-mail está configurada (`passwordRecovery`). |
+| `GET` | `/auth/session-capabilities` | Público | Informa se o servidor suporta sessão de navegador via cookie (`cookieSession`), se a recuperação de senha por e-mail está configurada (`passwordRecovery`) e se as notificações push estão disponíveis (`pushNotifications`). |
 | `POST` | `/auth/login` | Público; rate limited e Origin validado ao solicitar modo cookie | Autentica com `login` e `password`; grava cookie e retorna o perfil no modo cookie. |
 | `GET` | `/auth/me` | Sessão autenticada | Retorna o perfil da sessão atual. |
 | `POST` | `/auth/logout` | Sessão autenticada | Revoga a versão de sessão do usuário e remove o cookie. Retorna `204`. |
@@ -57,6 +57,22 @@ O middleware da API ainda aceita `Authorization: Bearer <JWT>` para integraçõe
 | `PATCH` | `/usuarios/:id` | Administrador; altera nome, login, nível de acesso ou status `ativo`. |
 | `POST` | `/usuarios/:id/password-reset` | Administrador; corpo `{ "senha": "..." }` com a política forte (12+ caracteres, maiúscula, minúscula, número, símbolo, máx. 72 bytes). Grava o novo hash, incrementa `sessionVersion` (encerra as sessões do usuário) e registra `PASSWORD_RESET` na auditoria na mesma transação. Retorna `204`. Usado pela ação **Redefinir senha** em **Cadastros → Usuários**. |
 | `POST`, `DELETE` | `/usuarios/:id/rfid-token` | Administrador; provisiona ou revoga token RFID. |
+
+## Notificações push
+
+Inscrição de dispositivos de administradores em notificações Web Push (Push API + service worker + VAPID). Todas as rotas exigem `requireAdmin`; `PUT`, `DELETE` e `POST /teste` têm limite de 30 requisições a cada 15 minutos por usuário. A disponibilidade é informada por `pushNotifications` em `GET /auth/session-capabilities`.
+
+| Método | Caminho | Acesso | Finalidade |
+|---|---|---|---|
+| `GET` | `/notificacoes/push/config` | Administrador | Retorna `{ habilitado: boolean, chavePublica: string \| null }`. |
+| `PUT` | `/notificacoes/push/inscricao` | Administrador; limite de taxa | Corpo `{ inscricao: { endpoint, keys: { p256dh, auth } }, preferencias: { emprestimo, devolucao, ocorrencia } }`. Faz upsert pelo `endpoint` e retorna `200` com `{ preferencias }`. Um endpoint vinculado anteriormente a outro usuário passa a pertencer ao usuário atual. |
+| `DELETE` | `/notificacoes/push/inscricao` | Administrador; limite de taxa | Corpo `{ endpoint }`. Remove apenas a inscrição do próprio chamador. Retorna `204`. |
+| `POST` | `/notificacoes/push/teste` | Administrador; limite de taxa | Envia um teste somente aos dispositivos do próprio chamador. Retorna `202`. |
+
+- `endpoint` deve ser `https`, sem credenciais nem porta, e seu host deve estar na lista de serviços de push permitidos: `fcm.googleapis.com`, `*.push.apple.com`, `*.push.services.mozilla.com` e `*.notify.windows.com`. A validação é repetida no envio (proteção contra SSRF).
+- `PUT` e `POST /teste` respondem `503` com `{ erro: 'backend.notificacoes.push_indisponivel' }` quando o push não está configurado. Outras chaves de erro: `backend.notificacoes.endpoint_invalido`, `backend.notificacoes.chave_invalida`, `backend.notificacoes.preferencias_invalidas` e `backend.notificacoes.muitas_requisicoes`.
+- Payload recebido pelo service worker: `{ v: 1, tipo: 'EMPRESTIMO_CRIADO' | 'DEVOLUCAO_REGISTRADA' | 'OCORRENCIA_REGISTRADA' | 'TESTE', titulo, corpo, url, tag, criadoEm }`.
+- O envio ocorre após o commit da operação e nunca atrasa nem faz falhar a requisição original. TTL de 1 hora e urgência `high`. Resposta `404` ou `410` do serviço de push remove a inscrição.
 
 ## Validação e regras
 

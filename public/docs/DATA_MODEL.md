@@ -53,8 +53,9 @@ The Prisma datasource is PostgreSQL. Scalar fields are non-nullable unless their
 | `sessionVersion` | `Int` | No | `@default(0)`; incremented on logout/password change to revoke earlier JWTs |
 | `rfidTokenHash` | `String` | Yes | `@unique`; `null` when no card is provisioned |
 | `createdAt` | `DateTime` | No | `@default(now())` |
+| `pushSubscriptions` | `PushSubscription[]` | No | Prisma relation, 1:N |
 
-`Usuario` has no relation field to the other models in the schema.
+`Usuario` has no relation to the domain entities (equipment, loans and occurrences); the `pushSubscriptions` relation links the user to their push notification subscriptions.
 
 ### Emprestimo (Loan)
 
@@ -100,6 +101,25 @@ The Prisma datasource is PostgreSQL. Scalar fields are non-nullable unless their
 | `createdAt` | `DateTime` | No | `@default(now())` |
 | `equipamento` | `Equipamento` | No | Prisma relation, N:1 |
 
+### PushSubscription
+
+| Field | Type | Nullable | Default / constraint |
+|---|---|---:|---|
+| `id` | `Int` | No | Primary key; `autoincrement()` |
+| `usuarioId` | `Int` | No | Foreign-key scalar to `Usuario.id`; `ON DELETE CASCADE` |
+| `endpoint` | `String` | No | `@unique` |
+| `p256dh` | `String` | No | — |
+| `auth` | `String` | No | — |
+| `notificarEmprestimo` | `Boolean` | No | `@default(true)` |
+| `notificarDevolucao` | `Boolean` | No | `@default(true)` |
+| `notificarOcorrencia` | `Boolean` | No | `@default(true)` |
+| `createdAt` | `DateTime` | No | `@default(now())` |
+| `updatedAt` | `DateTime` | No | Prisma `@updatedAt` behavior |
+| `lastSuccessAt` | `DateTime` | Yes | — |
+| `usuario` | `Usuario` | No | Prisma relation, N:1 |
+
+Created by the `20261113090000_push_subscriptions` migration, with an index on `usuarioId`. It stores no IP address or user agent.
+
 ## Enums
 
 | Enum | Values |
@@ -116,10 +136,11 @@ Categoria 1───N Equipamento
 Responsavel 1───N Emprestimo
 Emprestimo 1───N ItemEmprestimo N───1 Equipamento
 Equipamento 1───N Ocorrencia
-Usuario (independent; no direct relation to the domain entities)
+Usuario 1───N PushSubscription
+Usuario (independent; no relation to the domain entities)
 ```
 
-The foreign-key relations are `Equipamento.categoriaId → Categoria.id`, `Emprestimo.responsavelId → Responsavel.id`, `ItemEmprestimo.emprestimoId → Emprestimo.id`, `ItemEmprestimo.equipamentoId → Equipamento.id`, and `Ocorrencia.equipamentoId → Equipamento.id`. The Prisma schema does not declare `onDelete`/`onUpdate` actions; however, the versioned initial SQL migration creates all five FKs with `ON DELETE RESTRICT` and `ON UPDATE CASCADE`. Inspect SQL migrations together with the Prisma schema to determine the behavior of a migrated database.
+The foreign-key relations are `Equipamento.categoriaId → Categoria.id`, `Emprestimo.responsavelId → Responsavel.id`, `ItemEmprestimo.emprestimoId → Emprestimo.id`, `ItemEmprestimo.equipamentoId → Equipamento.id`, and `Ocorrencia.equipamentoId → Equipamento.id`. The Prisma schema does not declare `onDelete`/`onUpdate` actions; however, the versioned initial SQL migration creates all five FKs with `ON DELETE RESTRICT` and `ON UPDATE CASCADE`. The FK `PushSubscription.usuarioId → Usuario.id` is created by the `20261113090000_push_subscriptions` migration with `ON DELETE CASCADE`. Inspect SQL migrations together with the Prisma schema to determine the behavior of a migrated database.
 
 ## Defaults, keys, uniqueness, and indexes
 
@@ -127,8 +148,8 @@ The foreign-key relations are `Equipamento.categoriaId → Categoria.id`, `Empre
 - `Equipamento.quantidadeQuebrada`, `Emprestimo.status`, and `Ocorrencia.status` have schema defaults (`0`, `ABERTO`, and `ABERTO`, respectively).
 - `createdAt` on `Equipamento`, `Usuario`, `Emprestimo`, and `Ocorrencia` uses `@default(now())`.
 - `Equipamento.updatedAt` uses Prisma's `@updatedAt`; it is not declared as a user-supplied nullable field.
-- Unique declarations are `Categoria.nome`, `Usuario.login`, and nullable `Usuario.rfidTokenHash`. These produce uniqueness enforcement/indexes for those fields.
-- Explicit secondary indexes cover `Emprestimo.status`, `Ocorrencia.status`, equipment availability/broken counts, `ItemEmprestimo.emprestimoId`, the composite `ItemEmprestimo(equipamentoId, emprestimoId)`, and `Ocorrencia(equipamentoId, status, tipo)`.
+- Unique declarations are `Categoria.nome`, `Usuario.login`, nullable `Usuario.rfidTokenHash`, and `PushSubscription.endpoint`. These produce uniqueness enforcement/indexes for those fields.
+- Explicit secondary indexes cover `Emprestimo.status`, `Ocorrencia.status`, equipment availability/broken counts, `ItemEmprestimo.emprestimoId`, the composite `ItemEmprestimo(equipamentoId, emprestimoId)`, `Ocorrencia(equipamentoId, status, tipo)`, and `PushSubscription.usuarioId`.
 - `ItemEmprestimo.emprestimoId` and `Ocorrencia.equipamentoId` therefore have explicit query-supporting indexes; the former also has a composite index for equipment-to-open-loan lookup.
 
 ## Business rules verified in backend services
@@ -158,6 +179,14 @@ The foreign-key relations are `Equipamento.categoriaId → Categoria.id`, `Empre
 - RFID provisioning first requires the bridge to be enabled and the user to exist, then sends a generated token to the local bridge. Only after a successful bridge response does it store `hashRfidToken(token)` in `rfidTokenHash`; the generated token is returned by that service operation. A disabled bridge returns a service error, and bridge failures/timeouts return service errors.
 - Revoking an RFID card sets `rfidTokenHash` to `null`.
 
+### Push notifications
+
+- Loans, returns and occurrences trigger notifications only after the transaction commits; sending never delays or fails the original operation.
+- Recipients: active accounts with `nivelAcesso = ADMINISTRADOR` that have a subscription with the matching preference enabled (`notificarEmprestimo`, `notificarDevolucao` or `notificarOcorrencia`), checked at send time. `EDITOR` accounts never receive notifications, and the user who registered the operation does not receive their own notification.
+- An occurrence request produces a single notification, even with several patrimony numbers.
+- `PUT` upserts the subscription by `endpoint`; `DELETE` removes only the caller's own subscription. Logout removes the device's subscription, and changing or resetting the password removes all of the user's subscriptions.
+- A `404` or `410` response from the push service removes the affected subscription.
+
 ## Guest Mode public projections
 
 Anonymous `GET /equipamentos`, `/emprestimos`, and `/ocorrencias` responses use explicit backend allowlist serializers. Loans omit requester, responsible party, and note; occurrences omit serial number, issue, description, and remediation; equipment exposes only dashboard-required fields (no foreign-key/audit fields). `GET /responsaveis` and `/usuarios` require authentication. These application projections minimize payloads but are not equivalent to database-provider grants or RLS policies.
@@ -174,4 +203,4 @@ Verified on 2026-11-12 in the Neon SQL Editor (primary branch, `neondb` database
 - **RLS:** disabled (`relrowsecurity = false`) on every table. This is expected: the database is not exposed directly to clients and authorization is enforced by the API.
 - **Consequence:** since only `neondb_owner` can access the tables, the API connects as the schema owner, which can also run DDL (`DROP`, `ALTER`). Optional least-privilege improvement: create an application role limited to `SELECT/INSERT/UPDATE/DELETE` and reserve `neondb_owner` for migrations.
 
-Repeat the check after role changes or after enabling Neon features that create roles (such as the Data API).
+Repeat the check after role changes or after enabling Neon features that create roles (such as the Data API). The `PushSubscription` table was created after this check, by the migration applied with the same schema-owner role; include it in the next review.
