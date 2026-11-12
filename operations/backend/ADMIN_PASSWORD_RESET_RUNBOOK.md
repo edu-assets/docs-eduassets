@@ -1,5 +1,7 @@
 # Runbook — redefinição emergencial de senha administrativa
 
+**Use primeiro a interface:** desde a v1.1.0, qualquer administrador redefine a senha de outra conta em **Cadastros → Usuários → Redefinir senha** (`POST /usuarios/:id/password-reset`), com auditoria `PASSWORD_RESET` e revogação de sessões. Este runbook é só para quando **nenhum** administrador consegue entrar.
+
 Este procedimento é para recuperação controlada de uma conta administrativa quando o fluxo autenticado de troca de senha não pode ser usado. Ele exige acesso autorizado ao PostgreSQL e deve ser executado com backup recente e janela de manutenção aprovada.
 
 ## Procedimento
@@ -28,4 +30,4 @@ WHERE "login" = LOWER($2)
 
 ## Limites
 
-Este é um procedimento de emergência, não um substituto para uma UI de gestão de usuários. Não use `prisma migrate reset`, `prisma db push`, exclusão de usuários ou atualização sem a condição de administrador. A implementação futura deve oferecer reset administrativo auditável, exigir confirmação forte e revogar sessões com `sessionVersion`.
+Este é um procedimento de emergência, não um substituto para a redefinição administrativa da interface (auditável e com revogação de sessões via `sessionVersion`). Não use `prisma migrate reset`, `prisma db push`, exclusão de usuários ou atualização sem a condição de administrador.
