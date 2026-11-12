@@ -2,6 +2,17 @@
 
 This changelog preserves dated development and deployment records. The current product version is **official 1.2.0**, released on November 12, 2026; earlier entries remain historical.
 
+## Monitoring, alerting and Cloudflare account security — November 12, 2026
+
+Operations only, with no code or version change.
+
+- **Uptime running:** Cloudflare's Bot Fight Mode blocked GitHub's runners (HTTP 403); it was kept off and the workflow now runs green every 15 minutes.
+- **Dead-man-switch alerts** (healthchecks.io) configured for the VM health check and the daily backup.
+- **Cloudflare:** account MFA and AI Labyrinth enabled; `security.txt` also configured in the dashboard.
+- **Database:** grants and RLS verified in Neon and recorded in the Data Model.
+- **Backup:** the R2 HTTP 501 was diagnosed as noise from the VM's old `rclone`, with no data loss; the `rclone` update is pending.
+- **Documentation:** Hosting §10, §11.2, §14 and §15; Data Model.
+
 ## App privacy policy, cookie consent and Google Analytics — November 12, 2026
 
 - **App Privacy Policy** at `app.eduassets.tech/#privacidade` (PT/EN), based on the documented data and providers: controller, data processed, guest mode, LGPD legal bases, providers, retention, cookies and browser storage, security and data-subject rights. The entry screen now says "By continuing, you agree to the Terms of Use and acknowledge the Privacy Policy", and item 9 of the Terms of Use points to it.
