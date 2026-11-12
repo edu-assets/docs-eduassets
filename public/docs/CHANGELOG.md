@@ -10,7 +10,7 @@ Operação, sem mudança de código nem de versão.
 - **Alertas por dead-man switch** (healthchecks.io) configurados para o health check da VM e para o backup diário.
 - **Cloudflare:** MFA da conta e AI Labyrinth ativados; `security.txt` configurado também no painel.
 - **Banco:** grants e RLS verificados no Neon e registrados no Modelo de Dados.
-- **Backup:** o HTTP 501 do R2 foi diagnosticado como ruído do `rclone` antigo da VM, sem perda de dados; a atualização do `rclone` fica pendente.
+- **Backup:** o HTTP 501 do R2 vinha do `rclone` 1.60 do Ubuntu, sem perda de dados; com o `rclone` oficial 1.76.0 na VM, o envio passa na primeira tentativa.
 - **Documentação:** Hospedagem §10, §11.2, §14 e §15; Modelo de Dados.
 
 ## Política de privacidade do app, consentimento de cookies e Google Analytics — 12 de novembro de 2026
