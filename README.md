@@ -4,7 +4,7 @@
 
 This repository is the canonical source for eduAssets documentation shared by the frontend, backend, and portfolio. Public product guides are bilingual. The documentation is hosted at https://docs.eduassets.tech; the application keeps its catalog and reader code in app-eduassets, while this repository owns the Markdown.
 
-**Product status:** official version 1.3.0, released 2026-11-13. The bilingual [changelog](public/docs/CHANGELOG_EN.md) records the release and prior dated history.
+**Product status:** official version 1.4.0, released 2026-11-13. The bilingual [changelog](public/docs/CHANGELOG_EN.md) records the release and prior dated history.
 
 ## Repository layout
 
