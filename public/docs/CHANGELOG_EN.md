@@ -2,6 +2,19 @@
 
 This changelog preserves dated development and deployment records. The current product version is **official 1.2.0**, released on November 12, 2026; earlier entries remain historical.
 
+## Automatic refresh and date and time adjustments — November 12, 2026
+
+Fixes and adjustments, with no version number.
+
+- **Automatic refresh:** data refreshes by itself every 30 s while the screen is open, when you return to the app or tab and, for administrators, when a push notification arrives. Stock also refreshes after loans, returns and occurrences.
+- **Mobile fix (loans):** after changing the date and time of a loan, the form could no longer be submitted (the "Enter a valid value..." message) until the page was reloaded; the same affected returns.
+- **Mobile fix (menu):** the sidebar could not scroll down to the user profile.
+- **Date and time:** automatic date and time fields follow the server clock; returns without a manually changed date use the server time.
+- **Validation:** the server rejects dates more than 5 minutes in the future and returns earlier than the loan's checkout.
+- **Notifications:** loan and return notifications now open the Dashboard (History tab) instead of Control.
+- **Session:** automatic refreshes do not keep an idle administrator session alive.
+- **Documentation:** User Manual §3, §4, §5 and §10; API Reference (new *Data synchronization* section, `POST /emprestimos` and `PATCH /emprestimos/:id/devolver`).
+
 ## Push notifications for administrators — November 12, 2026
 
 New feature, with no version number.

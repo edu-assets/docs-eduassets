@@ -48,6 +48,8 @@ O fluxo só funciona quando a configuração, a rede, a ponte local, as dependê
 
 Em **Início**, use os atalhos **Novo empréstimo**, **Devoluções**, **Dashboard** e **Controle**. O botão **Começar** abre o painel **Registrar Empréstimo**. A tela também oferece **Ver documentação**.
 
+**Atualização automática:** a tela se atualiza sozinha a cada 30 segundos enquanto está aberta, assim que você volta para o app ou para a aba e, para administradores, imediatamente quando chega uma notificação. Não é preciso recarregar a página.
+
 ## 4. Registrar Empréstimo
 
 O painel aparece no menu como **Novo empréstimo** e tem o título **Registrar Empréstimo**. Requer **Editor** ou **Administrador**.
@@ -60,6 +62,8 @@ O painel aparece no menu como **Novo empréstimo** e tem o título **Registrar E
 
 O formulário exige pelo menos um item. A UI e o backend verificam a quantidade disponível em uma operação transacional; se o estoque não comportar a quantidade, o empréstimo não é registrado. Ao concluir, a quantidade disponível é reduzida.
 
+Enquanto **Data e Hora** não for alterada, o campo acompanha o relógio do servidor e o registro usa a hora do servidor no momento do salvamento. Se você alterar o campo, o horário escolhido é mantido. Datas com mais de 5 minutos no futuro não são aceitas.
+
 ## 5. Devoluções
 
 1. Abra **Devoluções**. A lista mostra os empréstimos com status aberto.
@@ -69,6 +73,8 @@ O formulário exige pelo menos um item. A UI e o backend verificam a quantidade 
 5. Revise o modal **Confirmar Devolução** e clique em **Confirmar Devolução**; **Cancelar** fecha sem concluir.
 
 Os itens retornam à quantidade disponível depois da confirmação. **Data e Hora da Devolução** é preenchido automaticamente e pode ser editado; ao confirmar, a UI envia o timestamp ISO com offset selecionado, que o backend valida e persiste. Clientes antigos que não enviem esse campo continuam usando o horário atual do servidor.
+
+Se **Data e Hora da Devolução** não for alterada, o registro usa a hora do servidor no momento da confirmação. A devolução não pode ser anterior à retirada do empréstimo, e datas com mais de 5 minutos no futuro não são aceitas.
 
 ## 6. Dashboard
 
@@ -161,7 +167,7 @@ Para desativar neste dispositivo, clique em **Desativar neste dispositivo**.
 - **iPhone e iPad:** exigem iOS 16.4 ou superior e o app instalado na tela de início. No Safari, toque em **Compartilhar → Adicionar à Tela de Início**, abra o app pelo ícone, entre como administrador e então ative as notificações.
 - **Bloqueio do navegador:** se as notificações foram bloqueadas, libere-as nas configurações do site (ícone ao lado do endereço) e recarregue a página.
 
-**Conteúdo:** o título é **Novo empréstimo**, **Devolução registrada** ou **Nova ocorrência**. Empréstimos e devoluções mostram o solicitante, os equipamentos e quem registrou, por exemplo: *João Silva · Notebook Dell ×2, Projetor Epson ×1 · por Ana Souza*. Ocorrências mostram os equipamentos, o tipo (**Observação**, **Manutenção** ou **Quebrado**) e quem registrou. Os equipamentos aparecem como "Categoria Modelo", até três itens e depois "e mais N". A notificação nunca mostra observações, descrições, problemas, medidas tomadas nem números de patrimônio, e um pedido de ocorrência gera uma única notificação, mesmo com vários números de patrimônio. O texto está em português nesta versão e pode aparecer na tela de bloqueio. Ao tocar na notificação, o app abre no painel **Controle**.
+**Conteúdo:** o título é **Novo empréstimo**, **Devolução registrada** ou **Nova ocorrência**. Empréstimos e devoluções mostram o solicitante, os equipamentos e quem registrou, por exemplo: *João Silva · Notebook Dell ×2, Projetor Epson ×1 · por Ana Souza*. Ocorrências mostram os equipamentos, o tipo (**Observação**, **Manutenção** ou **Quebrado**) e quem registrou. Os equipamentos aparecem como "Categoria Modelo", até três itens e depois "e mais N". A notificação nunca mostra observações, descrições, problemas, medidas tomadas nem números de patrimônio, e um pedido de ocorrência gera uma única notificação, mesmo com vários números de patrimônio. O texto está em português nesta versão e pode aparecer na tela de bloqueio. Ao tocar em uma notificação de empréstimo ou devolução, o app abre o **Dashboard** na aba **Histórico**; uma notificação de ocorrência abre o painel **Controle**.
 
 **Som e alerta:** a notificação do sistema usa o som e a vibração padrão do dispositivo, pois os navegadores não permitem som personalizado. Com o app aberto e visível, ele também exibe um aviso destacado e toca um som próprio, que pode ser desligado no interruptor **Som dentro do app**. No computador a notificação permanece até ser dispensada; no Android, ela vibra.
 

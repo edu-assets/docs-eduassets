@@ -48,6 +48,8 @@ The flow works only when configuration, networking, the local bridge, dependenci
 
 On **Home**, use the shortcuts **New loan**, **Returns**, **Dashboard**, and **Control**. **Get started** opens the **Register Loan** panel. The page also offers **View documentation**.
 
+**Automatic updates:** the screen refreshes itself every 30 seconds while it is open, as soon as you return to the app or tab and, for administrators, immediately when a notification arrives. There is no need to reload the page.
+
 ## 4. Register Loan
 
 The sidebar item is **New loan** and the panel title is **Register Loan**. It requires an **Editor** or **Administrator** session.
@@ -60,6 +62,8 @@ The sidebar item is **New loan** and the panel title is **Register Loan**. It re
 
 At least one item is required. Both the UI and backend validate available quantity in a transaction; if stock is insufficient, the loan is not created. When successful, available quantity is reduced.
 
+While **Date and Time** is untouched, the field follows the server clock and the record uses the server time at the moment of saving. If you change the field, your chosen time is kept. Dates more than 5 minutes in the future are not accepted.
+
 ## 5. Returns
 
 1. Open **Returns**. The list shows loans whose status is open.
@@ -69,6 +73,8 @@ At least one item is required. Both the UI and backend validate available quanti
 5. Review the **Confirm Return** modal and click **Confirm Return**; **Cancel** closes it without completing the return.
 
 Items become available again after confirmation. **Return Date and Time** is filled automatically and can be edited; on confirmation the UI sends the selected offset-aware ISO timestamp, which the backend validates and persists. Older clients that omit the field continue to use server-current time.
+
+If **Return Date and Time** is untouched, the record uses the server time at the moment of confirmation. A return cannot be earlier than the loan's checkout, and dates more than 5 minutes in the future are not accepted.
 
 ## 6. Dashboard
 
@@ -161,7 +167,7 @@ To turn it off on this device, click **Turn off on this device**.
 - **iPhone and iPad:** require iOS 16.4 or later and the app installed on the home screen. In Safari, tap **Share → Add to Home Screen**, open the app from its icon, sign in as an administrator and then enable notifications.
 - **Blocked by the browser:** if notifications were blocked, allow them in the site settings (icon next to the address) and reload the page.
 
-**Content:** the title is **Novo empréstimo**, **Devolução registrada** or **Nova ocorrência** (Portuguese in this version). Loan and return notifications show the requester, the equipment and who registered the operation, for example: *João Silva · Notebook Dell ×2, Projetor Epson ×1 · por Ana Souza*. Issue notifications show the equipment, the type (**Observação**, **Manutenção** or **Quebrado**) and who registered it. Equipment appears as "Category Model", up to three items and then "e mais N" ("and N more"). A notification never shows notes, descriptions, problem text, measures taken or patrimony numbers, and one issue request produces a single notification even when it has several patrimony numbers. The notification can appear on the lock screen. Tapping it opens the app on the **Control** panel.
+**Content:** the title is **Novo empréstimo**, **Devolução registrada** or **Nova ocorrência** (Portuguese in this version). Loan and return notifications show the requester, the equipment and who registered the operation, for example: *João Silva · Notebook Dell ×2, Projetor Epson ×1 · por Ana Souza*. Issue notifications show the equipment, the type (**Observação**, **Manutenção** or **Quebrado**) and who registered it. Equipment appears as "Category Model", up to three items and then "e mais N" ("and N more"). A notification never shows notes, descriptions, problem text, measures taken or patrimony numbers, and one issue request produces a single notification even when it has several patrimony numbers. The notification can appear on the lock screen. Tapping a loan or return notification opens the **Dashboard** on the **History** tab; tapping an issue notification opens the **Control** panel.
 
 **Sound and alerts:** the system notification uses the device's default sound and vibration, because browsers do not allow a custom sound. With the app open and visible, it also shows a highlighted toast and plays its own short sound, which can be turned off with the **Sound inside the app** switch. On desktop the notification stays until dismissed; on Android it vibrates.
 

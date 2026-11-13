@@ -2,6 +2,19 @@
 
 Este changelog preserva registros datados de desenvolvimento e implantação. A versão atual do produto é a **1.2.0 oficial**, publicada em 12/11/2026; entradas anteriores permanecem como histórico.
 
+## Atualização automática e ajustes de data e hora — 12 de novembro de 2026
+
+Correções e ajustes, sem número de versão.
+
+- **Atualização automática:** os dados são atualizados sozinhos a cada 30 s com a tela aberta, ao voltar para o app ou a aba e, para administradores, ao receber uma notificação push. O estoque também se atualiza após empréstimos, devoluções e ocorrências.
+- **Correção no celular (empréstimo):** depois de alterar a data e a hora de um empréstimo, o formulário podia deixar de ser enviado (mensagem "Insira um valor válido...") até a página ser recarregada; o mesmo acontecia nas devoluções.
+- **Correção no celular (menu):** a barra lateral não rolava até o perfil do usuário.
+- **Data e hora:** os campos automáticos seguem o relógio do servidor; devoluções sem data alterada manualmente usam a hora do servidor.
+- **Validação:** o servidor recusa datas com mais de 5 minutos no futuro e devoluções anteriores à retirada do empréstimo.
+- **Notificações:** empréstimos e devoluções abrem o Dashboard (aba Histórico) em vez de Controle.
+- **Sessão:** as atualizações automáticas não mantêm ativa a sessão de um administrador ocioso.
+- **Documentação:** Manual do Usuário §3, §4, §5 e §10; Referência da API (nova seção *Sincronização de dados*, `POST /emprestimos` e `PATCH /emprestimos/:id/devolver`).
+
 ## Notificações push para administradores — 12 de novembro de 2026
 
 Novo recurso, sem número de versão.

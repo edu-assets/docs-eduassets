@@ -44,9 +44,9 @@ O middleware da API ainda aceita `Authorization: Bearer <JWT>` para integraçõe
 | `GET` | `/equipamentos` | Público/convidado ou autenticado. |
 | `POST`, `PATCH` | `/equipamentos`, `/equipamentos/:id` | Administrador. |
 | `GET` | `/emprestimos` | Público/convidado ou autenticado. Sem sessão, aceita `limit` (padrão 50, máximo 100) e `cursor` positivo; retorna `{ items, nextCursor, limit }` em ordem de ID decrescente, com projeção pública reduzida. |
-| `POST` | `/emprestimos` | Usuário autenticado (editor ou administrador). |
+| `POST` | `/emprestimos` | Usuário autenticado (editor ou administrador). `dataRetirada` com mais de 5 minutos no futuro retorna `400` `backend.emprestimos.data_retirada_futura`. |
 | `PATCH` | `/emprestimos/:id` | Usuário autenticado; atualização dos itens de empréstimo. |
-| `PATCH` | `/emprestimos/:id/devolver` | Usuário autenticado; registro de devolução. |
+| `PATCH` | `/emprestimos/:id/devolver` | Usuário autenticado; registro de devolução. `dataDevolucao` é opcional (omitida = horário do servidor). Mais de 5 minutos no futuro retorna `400` `backend.emprestimos.data_devolucao_futura`; anterior à retirada, comparada por minuto, retorna `400` `backend.emprestimos.data_devolucao_anterior`. |
 | `GET` | `/ocorrencias` | Público/convidado ou autenticado; projeção pública reduzida. |
 | `POST`, `PATCH` | `/ocorrencias`, `/ocorrencias/:id` | Usuário autenticado. |
 | `PATCH` | `/ocorrencias/:id/resolver` | Usuário autenticado. |
@@ -57,6 +57,20 @@ O middleware da API ainda aceita `Authorization: Bearer <JWT>` para integraçõe
 | `PATCH` | `/usuarios/:id` | Administrador; altera nome, login, nível de acesso ou status `ativo`. |
 | `POST` | `/usuarios/:id/password-reset` | Administrador; corpo `{ "senha": "..." }` com a política forte (12+ caracteres, maiúscula, minúscula, número, símbolo, máx. 72 bytes). Grava o novo hash, incrementa `sessionVersion` (encerra as sessões do usuário) e registra `PASSWORD_RESET` na auditoria na mesma transação. Retorna `204`. Usado pela ação **Redefinir senha** em **Cadastros → Usuários**. |
 | `POST`, `DELETE` | `/usuarios/:id/rfid-token` | Administrador; provisiona ou revoga token RFID. |
+
+## Sincronização de dados
+
+| Método | Caminho | Acesso | Finalidade |
+|---|---|---|---|
+| `GET` | `/sync/estado?desde=<int opcional>` | Usuário autenticado (editor ou administrador). | Feed leve de mudanças usado pelo app para atualizar os dados automaticamente. |
+
+Resposta `200`: `{ "serverTime": "<ISO 8601>", "cursor": "<string>", "entidades": ["Emprestimo", "Equipamento", ...] }`.
+
+- `cursor` marca a posição no histórico de mudanças (fica alguns segundos atrás da mudança mais recente, para não perder transações confirmadas fora de ordem); envie-o como `desde` na próxima chamada. `entidades` lista os tipos de registro alterados desde `desde` — apenas `Categoria`, `Emprestimo`, `Equipamento`, `Ocorrencia` e `Responsavel` (vazio na primeira chamada sem `desde`). Uma mudança recente pode aparecer em duas consultas seguidas.
+- Só nomes de entidades são retornados, nunca o conteúdo dos registros nem quem os alterou. `serverTime` é o relógio do servidor, usado pelo app nos campos de data e hora automáticos.
+- A rota nunca renova o timeout de inatividade de 30 minutos do administrador.
+- Erros: `400` `backend.validacao.dados_invalidos` para `desde` inválido ou parâmetro desconhecido; `401` sem autenticação ou sessão expirada; `429` `backend.seguranca.muitas_requisicoes` (limite próprio de 900 requisições a cada 15 min por IP, separado do limite global).
+- Cabeçalho opcional `X-EduAssets-Atividade: passiva`: em qualquer requisição autenticada mantém todas as verificações, mas não conta como atividade do administrador (usado pelas atualizações automáticas em segundo plano). Só pode encurtar a sessão, nunca estendê-la.
 
 ## Notificações push
 
@@ -73,6 +87,7 @@ Inscrição de dispositivos de administradores em notificações Web Push (Push 
 - `PUT` e `POST /teste` respondem `503` com `{ erro: 'backend.notificacoes.push_indisponivel' }` quando o push não está configurado. Outras chaves de erro: `backend.notificacoes.endpoint_invalido`, `backend.notificacoes.chave_invalida`, `backend.notificacoes.preferencias_invalidas` e `backend.notificacoes.muitas_requisicoes`.
 - Payload recebido pelo service worker: `{ v: 1, tipo: 'EMPRESTIMO_CRIADO' | 'DEVOLUCAO_REGISTRADA' | 'OCORRENCIA_REGISTRADA' | 'TESTE', titulo, corpo, url, tag, criadoEm }`.
 - O envio ocorre após o commit da operação e nunca atrasa nem faz falhar a requisição original. TTL de 1 hora e urgência `high`. Resposta `404` ou `410` do serviço de push remove a inscrição.
+- Alvo do clique na notificação: empréstimo e devolução abrem `/#panel-dashboard` (aba Histórico); ocorrência abre `/#panel-controle`; teste abre `/#panel-inicio`.
 
 ## Validação e regras
 
